@@ -143,7 +143,14 @@ export default function AddStudentToCourse() {
         setstudent_id("")
         setSearchedStudent(null)
       } else {
-        setAddError(data.error || "Failed to add student to course")
+        if (
+          (data?.error && data.error.toLowerCase().includes("already")) ||
+          (data?.detail && data.detail.toLowerCase().includes("already"))
+        ) {
+          setAddError("Student already exists in this course.")
+        } else {
+          setAddError(data.error || data.detail || "Failed to add student to course")
+        }
       }
     } catch (error) {
       setAddError("Failed to add student to course")

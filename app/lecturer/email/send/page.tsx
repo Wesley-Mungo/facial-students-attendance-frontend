@@ -101,9 +101,28 @@ This is an automated message from the Facial Attendance System.`,
   }, [emailData])
 
   const loadEmailData = async (courseId: string) => {
+    setIsLoading(true)
     try {
-      setIsLoading(true)
-      const response = await fetch(`/api/lecturer/email/data/${courseId}`)
+      const token = localStorage.getItem("auth_token") // or get from cookies/context as needed
+      if (process.env.NODE_ENV === "development") {
+        console.log("[DEBUG] Token from localStorage:", token)
+        // If JWT, decode payload for inspection
+        if (token && token.split(".").length === 3) {
+          try {
+            const payload = JSON.parse(atob(token.split(".")[1]))
+            console.log("[DEBUG] Token payload:", payload)
+          } catch (e) {
+            console.log("[DEBUG] Failed to decode token payload.")
+          }
+        }
+      }
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/notifications/email-data/${courseId}`, {
+        headers: {
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+          "Content-Type": "application/json"
+        },
+        credentials: "include" // try with include for cross-origin cookies if backend supports
+      })
       if (response.ok) {
         const data = await response.json()
         setEmailData(data)
@@ -177,25 +196,46 @@ This is an automated message from the Facial Attendance System.`,
       }))
       setEmailStatuses(initialStatuses)
 
-      const response = await fetch("/api/lecturer/email/send", {
+      const token = localStorage.getItem("auth_token")
+      if (process.env.NODE_ENV === "development") {
+        console.log("[DEBUG] Token from localStorage (sendEmails):", token)
+      }
+
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/notifications/send-bulk-attendance-emails/${emailData.course.id}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           courseId: emailData.course.id,
           selectedStudents,
           subject: emailSubject,
           message: emailMessage,
         }),
+        credentials: "include"
       })
 
       if (response.ok) {
         const result = await response.json()
-        setEmailStatuses(result.emailStatuses)
+        // Build emailStatuses from backend response
+        let statuses: EmailStatus[] = []
+        if (result.student_details && (result.success_emails || result.failed_emails)) {
+          statuses = result.student_details.map((student: any) => ({
+            studentId: student.student_id,
+            studentName: student.student_name,
+            email: student.email,
+            status: result.success_emails.includes(student.email) ? "sent" : result.failed_emails.includes(student.email) ? "failed" : "pending",
+          }))
+        } else if (result.emailStatuses) {
+          statuses = result.emailStatuses
+        }
+        setEmailStatuses(statuses)
         setSendingComplete(true)
         setCurrentStep(3)
 
-        const successCount = result.emailStatuses.filter((s: EmailStatus) => s.status === "sent").length
-        const failCount = result.emailStatuses.filter((s: EmailStatus) => s.status === "failed").length
+        const successCount = statuses.filter((s) => s.status === "sent").length
+        const failCount = statuses.filter((s) => s.status === "failed").length
 
         toast({
           title: "Email Sending Complete",
@@ -588,8 +628,8 @@ This is an automated message from the Facial Attendance System.`,
                         status.status === "sent"
                           ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
                           : status.status === "failed"
-                            ? "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800"
-                            : "bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                          ? "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800"
+                          : "bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700"
                       }`}
                     >
                       <div className="flex items-center space-x-3">

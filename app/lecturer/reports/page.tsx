@@ -56,33 +56,147 @@ export default function AttendanceReport() {
   const [isLoading, setIsLoading] = useState(true)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [sessionList, setSessionList] = useState<string[]>([])
   const searchParams = useSearchParams()
   const courseId = searchParams.get("course") || ""
   const { toast } = useToast()
 
-  useEffect(() => {
-    if (courseId) {
-      generateReport(courseId)
-    } else {
-      setIsLoading(false)
+  // Fetch attendance session dates for the course
+  const fetchSessionList = async (courseId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const url = `http://127.0.0.1:8000/api/v1/recognition/attendance-sessions/${courseId}`;
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Assume backend returns an array of date strings
+        setSessionList(Array.isArray(data) ? data : [])
+      } else {
+        setSessionList([])
+      }
+    } catch {
+      setSessionList([])
     }
+  }
+
+  // Fetch course details for the course
+  const fetchCourseDetails = async (courseId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const url = `http://127.0.0.1:8000/api/v1/courses/${courseId}`;
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Map backend response to Course interface
+        return {
+          id: data.id?.toString() ?? courseId,
+          courseCode: data.course_code || '',
+          courseName: data.name || '',
+          session: data.session || '',
+          department: '', // Not provided
+          level: 0, // Not provided
+        };
+      }
+    } catch {}
+    return null;
+  }
+
+  // Fetch student matches for the course
+  const fetchStudentMatches = async (courseId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const url = `http://127.0.0.1:8000/api/v1/courses/${courseId}/students`;
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // If the response is an array, map it; if it's an object, wrap in array
+        const students = Array.isArray(data) ? data : [data];
+        return students.map((student: any) => ({
+          studentId: student.student_id,
+          name: student.name,
+          department: student.department || '',
+          level: student.level || 0,
+          matched: true, // Default to true, adjust if you have logic
+          type: "Regular" as "Regular", // Use literal type
+        }));
+      }
+    } catch {}
+    return [];
+  }
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (courseId) {
+        fetchSessionList(courseId);
+        const courseDetails = await fetchCourseDetails(courseId);
+        const studentMatches = await fetchStudentMatches(courseId);
+        await fetchReportData(courseId, courseDetails, studentMatches);
+      } else {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId])
 
-  const generateReport = async (courseId: string) => {
+  // Fetch report data directly from backend
+  const fetchReportData = async (courseId: string, courseDetails?: Course | null, studentMatches?: StudentMatch[]) => {
     try {
       setIsLoading(true)
       setIsGenerating(true)
-
-      const response = await fetch(`/api/lecturer/reports/generate/${courseId}`)
+      const token = localStorage.getItem('auth_token');
+      const url = `http://127.0.0.1:8000/api/v1/notifications/attendance-summary/${courseId}`;
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (response.ok) {
-        const data = await response.json()
-        setReportData(data)
+        const data = await response.json();
+        // Transform backend response to match frontend expectations
+        const attendanceRecords = Array.isArray(data.students)
+          ? data.students.map((student: any) => ({
+              studentId: student.student_id,
+              name: student.name,
+              attendanceByDate: {}, // Not available in backend response
+              presentCount: student.attended,
+              attendancePercentage: parseFloat((student.attendance_percent || '0').replace('%', '')),
+            }))
+          : [];
+        // Calculate stats from studentMatches
+        const regularCount = (studentMatches || []).filter(s => s.type === "Regular").length;
+        const carryoverCount = (studentMatches || []).filter(s => s.type === "Carryover").length;
+        const totalStudents = (studentMatches || []).length;
+        setReportData({
+          course: courseDetails || {
+            id: courseId,
+            courseCode: '',
+            courseName: '',
+            session: '',
+            department: '',
+            level: 0,
+          },
+          totalSessions: data.total_sessions || 0,
+          sessionDates: [], // Not available in backend response
+          studentMatches: studentMatches || [],
+          attendanceRecords,
+          stats: {
+            totalStudentsInDB: totalStudents,
+            matchedRegularStudents: regularCount,
+            carryoverStudents: carryoverCount,
+            notMatchedStudents: 0, // Not available
+          },
+        });
         toast({
           title: "Report Generated",
           description: "Attendance report has been successfully generated",
         })
       } else {
-        const errorData = await response.json()
+        const errorData = await response.json();
         toast({
           title: "Error",
           description: errorData.error || "Failed to generate report",
@@ -107,7 +221,9 @@ export default function AttendanceReport() {
     try {
       setIsExporting(true)
 
-      const response = await fetch(`/api/lecturer/reports/export/${courseId}`, {
+      // Remove the old export endpoint and use the backend endpoint directly
+      const url = `http://127.0.0.1:8000/api/v1/recognition/attendance-report/export/${courseId}`;
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -222,12 +338,29 @@ export default function AttendanceReport() {
                 <CardTitle className="flex items-center space-x-2">
                   <BookOpen className="h-5 w-5 text-blue-600" />
                   <span>
-                    {reportData.course.courseName} ({reportData.course.courseCode})
+                    {reportData.course && reportData.course.courseName && reportData.course.courseCode ? (
+                      <>
+                        {reportData.course.courseName} ({reportData.course.courseCode})
+                      </>
+                    ) : (
+                      <span className="text-red-500">Course data unavailable</span>
+                    )}
                   </span>
                 </CardTitle>
                 <CardDescription className="mt-1">
-                  {reportData.course.session} • Seeking Dept: {reportData.course.department} • Level:{" "}
-                  {reportData.course.level}
+                  {reportData.course ? (
+                    <>
+                      {reportData.course.session ? reportData.course.session : 'Session N/A'}
+                      {" • Dept: "}
+                      {reportData.course.department ? reportData.course.department : 'N/A'}
+                      {" • Level: "}
+                      {reportData.course.level !== undefined && reportData.course.level !== null && reportData.course.level !== 0
+                        ? reportData.course.level
+                        : 'N/A'}
+                    </>
+                  ) : (
+                    <span className="text-red-500">Course details unavailable</span>
+                  )}
                 </CardDescription>
               </div>
               <Badge variant="secondary" className="text-sm">
@@ -255,14 +388,14 @@ export default function AttendanceReport() {
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <span className="text-sm font-medium">Regular Students</span>
                 </div>
-                <p className="text-2xl font-bold mt-2">{reportData.stats.matchedRegularStudents}</p>
+                <p className="text-2xl font-bold mt-2">{reportData.stats ? reportData.stats.matchedRegularStudents : 0}</p>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                 <div className="flex items-center space-x-2">
                   <AlertTriangle className="h-5 w-5 text-orange-600" />
                   <span className="text-sm font-medium">Carryover Students</span>
                 </div>
-                <p className="text-2xl font-bold mt-2">{reportData.stats.carryoverStudents}</p>
+                <p className="text-2xl font-bold mt-2">{reportData.stats ? reportData.stats.carryoverStudents : 0}</p>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                 <div className="flex items-center space-x-2">
@@ -270,7 +403,7 @@ export default function AttendanceReport() {
                   <span className="text-sm font-medium">Total Offering Course</span>
                 </div>
                 <p className="text-2xl font-bold mt-2">
-                  {reportData.stats.matchedRegularStudents + reportData.stats.carryoverStudents}
+                  {reportData.stats ? (reportData.stats.matchedRegularStudents + reportData.stats.carryoverStudents) : 0}
                 </p>
               </div>
             </div>
@@ -311,21 +444,21 @@ export default function AttendanceReport() {
                   <TableRow>
                     <TableHead className="w-32">ID</TableHead>
                     <TableHead>Name</TableHead>
-                    {reportData.sessionDates.map((date) => (
+                    {Array.isArray(reportData.sessionDates) ? reportData.sessionDates.map((date) => (
                       <TableHead key={date} className="text-center min-w-24">
                         {date}
                       </TableHead>
-                    ))}
+                    )) : null}
                     <TableHead className="text-center">Present Count</TableHead>
                     <TableHead className="text-center">Attendance %</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reportData.attendanceRecords.map((record, index) => (
+                  {Array.isArray(reportData.attendanceRecords) ? reportData.attendanceRecords.map((record, index) => (
                     <TableRow key={record.studentId}>
                       <TableCell className="font-medium">{record.studentId}</TableCell>
                       <TableCell>{record.name}</TableCell>
-                      {reportData.sessionDates.map((date) => (
+                      {Array.isArray(reportData.sessionDates) ? reportData.sessionDates.map((date) => (
                         <TableCell key={date} className="text-center">
                           <Badge
                             variant={record.attendanceByDate[date] === "Present" ? "default" : "destructive"}
@@ -338,7 +471,7 @@ export default function AttendanceReport() {
                             {record.attendanceByDate[date]}
                           </Badge>
                         </TableCell>
-                      ))}
+                      )) : null}
                       <TableCell className="text-center font-medium">{record.presentCount}</TableCell>
                       <TableCell className="text-center">
                         <Badge className={getAttendanceColor(record.attendancePercentage)}>
@@ -346,14 +479,14 @@ export default function AttendanceReport() {
                         </Badge>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )) : null}
                 </TableBody>
               </Table>
             </div>
 
             {/* Mobile Card View */}
             <div className="lg:hidden divide-y divide-gray-200 dark:divide-gray-700">
-              {reportData.attendanceRecords.map((record) => (
+              {Array.isArray(reportData.attendanceRecords) ? reportData.attendanceRecords.map((record) => (
                 <div key={record.studentId} className="p-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -365,11 +498,10 @@ export default function AttendanceReport() {
                         {record.attendancePercentage.toFixed(1)}%
                       </Badge>
                     </div>
-
                     <div className="space-y-2">
                       <div className="text-sm font-medium">Attendance by Session:</div>
                       <div className="grid grid-cols-2 gap-2">
-                        {reportData.sessionDates.map((date) => (
+                        {Array.isArray(reportData.sessionDates) ? reportData.sessionDates.map((date) => (
                           <div key={date} className="flex items-center justify-between text-sm">
                             <span>{date}:</span>
                             <Badge
@@ -383,7 +515,7 @@ export default function AttendanceReport() {
                               {record.attendanceByDate[date]}
                             </Badge>
                           </div>
-                        ))}
+                        )) : null}
                       </div>
                     </div>
 
@@ -392,7 +524,7 @@ export default function AttendanceReport() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : null}
             </div>
           </CardContent>
         </Card>
@@ -407,23 +539,25 @@ export default function AttendanceReport() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-green-600">
-                    {reportData.attendanceRecords.filter((r) => r.attendancePercentage >= 75).length}
+                    {Array.isArray(reportData.attendanceRecords)
+                      ? reportData.attendanceRecords.filter((r) => r.attendancePercentage >= 75).length
+                      : 0}
                   </p>
                   <p className="text-sm text-muted-foreground">Good Attendance (≥75%)</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-yellow-600">
-                    {
-                      reportData.attendanceRecords.filter(
-                        (r) => r.attendancePercentage >= 50 && r.attendancePercentage < 75,
-                      ).length
-                    }
+                    {Array.isArray(reportData.attendanceRecords)
+                      ? reportData.attendanceRecords.filter((r) => r.attendancePercentage >= 50 && r.attendancePercentage < 75).length
+                      : 0}
                   </p>
                   <p className="text-sm text-muted-foreground">Average Attendance (50-74%)</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-red-600">
-                    {reportData.attendanceRecords.filter((r) => r.attendancePercentage < 50).length}
+                    {Array.isArray(reportData.attendanceRecords)
+                      ? reportData.attendanceRecords.filter((r) => r.attendancePercentage < 50).length
+                      : 0}
                   </p>
                   <p className="text-sm text-muted-foreground">Poor Attendance (&lt;50%)</p>
                 </div>

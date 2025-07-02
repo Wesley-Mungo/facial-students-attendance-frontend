@@ -181,6 +181,16 @@ export default function LecturerDashboard() {
       category: "Settings",
       featured: false,
     },
+    {
+      title: "Send Email",
+      description: "Send attendace notifications to students",
+      icon: Mail,
+      href: "/lecturer/email/send",
+      gradient: "from-yellow-500 to-yellow-600",
+      iconBg: "bg-gradient-to-r from-yellow-500 to-yellow-600",
+      category: "Email",
+      featured: false,
+    },
   ]
 
   const recentSessions = [

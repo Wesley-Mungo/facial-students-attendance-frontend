@@ -18,8 +18,7 @@ interface LiveCameraRegistrationProps {
 
 const departments = [
   "CEF",
-  "Computer Engineering",
-  "Electrical Engineering",
+  "EEF",
   "Mechanical Engineering",
   "Civil Engineering",
 ]
@@ -65,13 +64,23 @@ export function LiveCameraRegistration({ onRegistrationSuccess }: LiveCameraRegi
     try {
       setCameraError("")
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: 640, height: 480 },
+        video: { facingMode: "user", width: 1040, height: 680 },
       })
       setStream(mediaStream)
 
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
-        await videoRef.current.play()
+        // Wait for metadata to load before playing
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch((err) => {
+            console.error("Video play error:", err)
+            setCameraError("Failed to play video. Please refresh and try again.")
+          })
+        }
+        // Try to play immediately as well (for some browsers)
+        videoRef.current.play().catch((err) => {
+          console.error("Video play error (immediate):", err)
+        })
       }
     } catch (err) {
       console.error("Error accessing camera:", err)
@@ -224,19 +233,30 @@ export function LiveCameraRegistration({ onRegistrationSuccess }: LiveCameraRegi
                 </div>
               </div>
             ) : stream ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover"
-                onLoadedMetadata={() => {
-                  if (videoRef.current) {
-                    videoRef.current.play()
-                    setIsCameraReady(true)
-                  }
-                }}
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                  onLoadedMetadata={() => {
+                    if (videoRef.current) {
+                      videoRef.current.play().catch((err) => {
+                        console.error("Video play error (onLoadedMetadata):", err)
+                        setCameraError("Failed to play video. Please refresh and try again.")
+                      })
+                    }
+                  }}
+                  onError={() => setCameraError("Video element error. Please refresh and try again.")}
+                />
+                {/* Show overlay if video is not ready */}
+                {!isCameraReady && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60">
+                    <span className="text-white">Loading camera...</span>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center p-4">

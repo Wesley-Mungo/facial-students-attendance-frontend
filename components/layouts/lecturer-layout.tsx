@@ -4,14 +4,15 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
+import { Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Camera, Users, LogOut, Menu, GraduationCap, LayoutDashboard, BookOpen } from "lucide-react"
+import { Camera, Users, LogOut, Menu, LayoutDashboard, BookOpen, SendIcon, GraduationCap } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/lecturer/dashboard", icon: LayoutDashboard },
   { name: "Students", href: "/lecturer/students", icon: Users },
-  { name: "Lecturers", href: "/lecturer/lecturers", icon: GraduationCap },
+  { name: "Email", href: "/lecturer/email/send", icon: SendIcon },
   { name: "Course", href: "/lecturer/courses", icon: BookOpen },
   { name: "Attendance", href: "/lecturer/attendance", icon: Camera },
 ]
@@ -133,7 +134,9 @@ export function LecturerLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <div className="md:pl-72">
+        <Suspense fallback={<div className="p-4">Loading...</div>}>
         <main className="min-h-screen bg-gray-50">{children}</main>
+        </Suspense>
       </div>
     </div>
   )
