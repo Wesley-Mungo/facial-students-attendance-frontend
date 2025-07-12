@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { BookOpen, Mail, Send, Users, CheckCircle, XCircle, Loader2, Settings, Clock, FileText } from "lucide-react"
+import { BookOpen, Mail, Send, Users, CheckCircle, XCircle, Loader2, Settings, Clock, FileText, Bell } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 
@@ -318,11 +318,25 @@ This is an automated message from the Facial Attendance System.`,
   if (!emailData.hasEmailSettings) {
     return (
       <LecturerLayout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Send Attendance Email</h1>
-            <p className="text-muted-foreground mt-2">Send attendance reports to students via email</p>
-          </div>
+        <div className="space-y-8 p-6">
+                   {/* Header Section */}
+                   <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-university-primary via-blue-600 to-purple-600 p-8 text-white">
+                     <div className="absolute inset-0 bg-black/10"></div>
+                     <div className="relative z-10">
+                       <div className="flex items-center justify-between">
+                         <div>
+                             <h1 className="text-4xl font-bold mb-2">Send Attendance Email</h1>
+                           <p className="text-blue-100 text-lg">Send attendance reports to students via email</p>
+                           </div>
+                           <Button  variant="outline" className="hidden md:flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                               <Bell className="h-8 w-8" />
+                               <span className="ml-2">Log Out</span>
+                           </Button>
+                       </div>
+                     </div>
+                     <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-white/10"></div>
+                     <div className="absolute -left-20 -bottom-20 h-32 w-32 rounded-full bg-white/5"></div>
+                   </div>
 
           <Card className="max-w-2xl mx-auto">
             <CardHeader className="text-center">
@@ -358,10 +372,26 @@ This is an automated message from the Facial Attendance System.`,
     <LecturerLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">Send Attendance Email</h1>
-          <p className="text-muted-foreground mt-2">Send attendance reports to students via email</p>
-        </div>
+        
+                   {/* Header Section */}
+                   <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-university-primary via-blue-600 to-purple-600 p-8 text-white">
+                     <div className="absolute inset-0 bg-black/10"></div>
+                     <div className="relative z-10">
+                       <div className="flex items-center justify-between">
+                         <div>
+                             <h1 className="text-4xl font-bold mb-2">Send Attendance Email</h1>
+                           <p className="text-blue-100 text-lg">Send attendance reports to students via email</p>
+                           </div>
+                           <Button  variant="outline" className="hidden md:flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                               <Bell className="h-8 w-8" />
+                               <span className="ml-2">Log Out</span>
+                           </Button>
+                       </div>
+                     </div>
+                     <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-white/10"></div>
+                     <div className="absolute -left-20 -bottom-20 h-32 w-32 rounded-full bg-white/5"></div>
+                   </div>
+                   
 
         {/* Progress Steps */}
         <Card>

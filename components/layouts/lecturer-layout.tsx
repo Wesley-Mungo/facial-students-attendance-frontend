@@ -47,7 +47,7 @@ export function LecturerLayout({ children }: { children: React.ReactNode }) {
                 </div>
                 <div className="text-white">
                   <h2 className="text-lg font-bold">Lecturer Portal</h2>
-                  <p className="text-xs text-white/80">Attendance System</p>
+                  <p className="text-xs text-white/80">Smart Attendance</p>
                 </div>
               </div>
             </div>
@@ -95,7 +95,7 @@ export function LecturerLayout({ children }: { children: React.ReactNode }) {
               </div>
               <div className="text-white">
                 <h2 className="text-xl font-bold">Lecturer Portal</h2>
-                <p className="text-sm text-white/80">Attendance System</p>
+                <p className="text-sm text-white/80">Smart Attendance</p>
               </div>
             </div>
           </div>

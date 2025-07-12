@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BookOpen, FileText, Download, Users, CheckCircle, AlertTriangle, Loader2 } from "lucide-react"
+import { BookOpen, FileText, Download, Users, CheckCircle, AlertTriangle, Loader2, Bell } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface Course {
@@ -276,11 +276,26 @@ export default function AttendanceReport() {
   if (isLoading) {
     return (
       <LecturerLayout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Generate Attendance Report</h1>
-            <p className="text-muted-foreground">Creating comprehensive attendance report...</p>
-          </div>
+        <div className="space-y-8 p-6">
+                   {/* Header Section */}
+                   <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-university-primary via-blue-600 to-purple-600 p-8 text-white">
+                     <div className="absolute inset-0 bg-black/10"></div>
+                     <div className="relative z-10">
+                       <div className="flex items-center justify-between">
+                         <div>
+                             <h1 className="text-4xl font-bold mb-2">Attendance Report</h1>
+                           <p className="text-blue-100 text-lg">Comprehensive attendance analysis and student matching</p>
+                           </div>
+                           <Button  variant="outline" className="hidden md:flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                               <Bell className="h-8 w-8" />
+                               <span className="ml-2">Log Out</span>
+                           </Button>
+                       </div>
+                     </div>
+                     <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-white/10"></div>
+                     <div className="absolute -left-20 -bottom-20 h-32 w-32 rounded-full bg-white/5"></div>
+                   </div>
+     
 
           <Card>
             <CardContent className="pt-6">
@@ -324,11 +339,26 @@ export default function AttendanceReport() {
 
   return (
     <LecturerLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Attendance Report</h1>
-          <p className="text-muted-foreground">Comprehensive attendance analysis and student matching</p>
-        </div>
+      <div className="space-y-8 p-6">
+                   {/* Header Section */}
+                   <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-university-primary via-blue-600 to-purple-600 p-8 text-white">
+                     <div className="absolute inset-0 bg-black/10"></div>
+                     <div className="relative z-10">
+                       <div className="flex items-center justify-between">
+                         <div>
+                             <h1 className="text-4xl font-bold mb-2">Attendance Report</h1>
+                           <p className="text-blue-100 text-lg">Comprehensive attendance analysis and student matching</p>
+                           </div>
+                           <Button  variant="outline" className="hidden md:flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                               <Bell className="h-8 w-8" />
+                               <span className="ml-2">Log Out</span>
+                           </Button>
+                       </div>
+                     </div>
+                     <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-white/10"></div>
+                     <div className="absolute -left-20 -bottom-20 h-32 w-32 rounded-full bg-white/5"></div>
+                   </div>
+     
 
         {/* Course Information */}
         <Card>
@@ -371,7 +401,7 @@ export default function AttendanceReport() {
         </Card>
 
         {/* Student Matching Summary */}
-        <Card>
+        <Card className="relative overflow-hidden border-0 shadow-university hover:shadow-university-lg transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <div>
               <CardTitle className="flex items-center space-x-2">
@@ -411,7 +441,7 @@ export default function AttendanceReport() {
         </Card>
 
         {/* Attendance Report Table */}
-        <Card>
+        <Card className="relative overflow-hidden border-0 shadow-university hover:shadow-university-lg transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>

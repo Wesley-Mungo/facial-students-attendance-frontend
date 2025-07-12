@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BookOpen, RefreshCw, Download, Eye } from "lucide-react"
+import { BookOpen, RefreshCw, Download, Eye, Bell } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface AttendanceRecord {
@@ -162,13 +162,27 @@ export default function AttendanceRecords() {
 
   return (
     <LecturerLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Attendance Records</h1>
-          <p className="text-muted-foreground">Select a date to view students marked present</p>
-        </div>
+      <div className="space-y-8 p-6">
+                   {/* Header Section */}
+                   <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-university-primary via-blue-600 to-purple-600 p-8 text-white">
+                     <div className="absolute inset-0 bg-black/10"></div>
+                     <div className="relative z-10">
+                       <div className="flex items-center justify-between">
+                         <div>
+                             <h1 className="text-4xl font-bold mb-2">Attendance Records</h1>
+                           <p className="text-blue-100 text-lg">Select a date to view students marked present</p>
+                           </div>
+                           <Button  variant="outline" className="hidden md:flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                               <Bell className="h-8 w-8" />
+                               <span className="ml-2">Log Out</span>
+                           </Button>
+                       </div>
+                     </div>
+                     <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-white/10"></div>
+                     <div className="absolute -left-20 -bottom-20 h-32 w-32 rounded-full bg-white/5"></div>
+                   </div>
         {/* Date selection */}
-        <Card>
+        <Card className="relative overflow-hidden border-0 shadow-university hover:shadow-university-lg transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle>Select Attendance Date</CardTitle>
             <CardDescription>Click a date to view students present on that day.</CardDescription>

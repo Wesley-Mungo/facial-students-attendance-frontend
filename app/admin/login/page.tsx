@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Shield, Mail, Lock } from "lucide-react"
+import { Eye, EyeOff, Shield, Mail, Lock, Users } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
+
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
@@ -55,9 +56,11 @@ export default function AdminLogin() {
       <Card className="w-full max-w-md relative z-10 shadow-university border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="text-center pb-6">
           <div className="flex justify-center mb-6">
-            <div className="p-4 bg-gradient-to-br from-university-primary to-university-primary rounded-2xl shadow-university-lg">
-              <Shield className="h-10 w-10 text-white" />
-            </div>
+           
+              <div className="flex justify-center mb-4">
+                <Users className="h-12 w-12 text-university-primary" />
+              </div>
+            
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-university-primary to-university-primary bg-clip-text text-transparent">
             Admin Portal

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BookOpen, Users, Search, RefreshCw, Download, Filter } from "lucide-react"
+import { BookOpen, Users, Search, RefreshCw, Download, Filter, Bell } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface Student {
@@ -170,15 +170,29 @@ export default function ViewCourseStudents() {
 
   return (
     <LecturerLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">View Course Students</h1>
-          <p className="text-muted-foreground">View all students enrolled in your course</p>
-        </div>
+      <div className="space-y-8 p-6">
+              {/* Header Section */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-university-primary via-blue-600 to-purple-600 p-8 text-white">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-4xl font-bold mb-2">View Course Students</h1>
+                      <p className="text-blue-100 text-lg">View all student enrolled in your course</p>
+                      </div>
+                      <Button  variant="outline" className="hidden md:flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                          <Bell className="h-8 w-8" />
+                          <span className="ml-2">Log Out</span>
+                      </Button>
+                  </div>
+                </div>
+                <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-white/10"></div>
+                <div className="absolute -left-20 -bottom-20 h-32 w-32 rounded-full bg-white/5"></div>
+              </div>
 
         {/* Course Information */}
         {courseData && (
-          <Card>
+          <Card className="relative overflow-hidden border-0 shadow-university hover:shadow-university-lg transition-all duration-300 hover:-translate-y-1">
             <CardHeader className="bg-blue-50 dark:bg-blue-950">
               <div className="flex items-center justify-between">
                 <div>
@@ -224,7 +238,7 @@ export default function ViewCourseStudents() {
         )}
 
         {/* Filters */}
-        <Card>
+        <Card className="relative overflow-hidden border-0 shadow-university hover:shadow-university-lg transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Filter className="h-5 w-5" />
@@ -282,7 +296,7 @@ export default function ViewCourseStudents() {
             <AlertDescription>No students found matching your search criteria.</AlertDescription>
           </Alert>
         ) : (
-          <Card>
+          <Card className="relative overflow-hidden border-0 shadow-university hover:shadow-university-lg transition-all duration-300 hover:-translate-y-1">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="h-5 w-5" />
